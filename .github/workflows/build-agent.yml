@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+env:
+  CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -36,13 +40,13 @@ jobs:
           cp _headers site/_headers || true
           cp .htaccess site/.htaccess || true
       - name: Deploy
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+        if: env.CF_TOKEN != '' && env.CF_ACCOUNT != ''
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ env.CF_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CF_ACCOUNT }}
         run: npx --yes wrangler@4.147.0 deploy
       - name: Upload artifact without Cloudflare secrets
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN == '' || secrets.CLOUDFLARE_ACCOUNT_ID == '' }}
+        if: env.CF_TOKEN == '' || env.CF_ACCOUNT == ''
         uses: actions/upload-artifact@v4
         with:
           name: photocraft-ai-site
