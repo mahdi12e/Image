@@ -37,14 +37,14 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.endsWith(".wasm")) {
       const compressed = new URL(request.url);
-      compressed.pathname += ".gz";
+      compressed.pathname += ".br";
       const assetResponse = await env.ASSETS.fetch(new Request(compressed, request));
       if (!assetResponse.ok) return assetResponse;
       const headers = new Headers(assetResponse.headers);
       headers.set("Content-Type", "application/wasm");
-      headers.set("Content-Encoding", "gzip");
+      headers.set("Content-Encoding", "br");
       headers.delete("Content-Length");
-      return new Response(assetResponse.body, { status: assetResponse.status, headers });
+      return new Response(assetResponse.body, { status: assetResponse.status, headers, encodeBody: "manual" });
     }
     if (url.pathname === "/api/agent") {
       if (request.method !== "POST") return json({ error: "POST required" }, 405);
