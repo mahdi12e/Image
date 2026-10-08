@@ -35,6 +35,17 @@ function extractResponse(result) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.endsWith(".wasm")) {
+      const compressed = new URL(request.url);
+      compressed.pathname += ".gz";
+      const assetResponse = await env.ASSETS.fetch(new Request(compressed, request));
+      if (!assetResponse.ok) return assetResponse;
+      const headers = new Headers(assetResponse.headers);
+      headers.set("Content-Type", "application/wasm");
+      headers.set("Content-Encoding", "gzip");
+      headers.delete("Content-Length");
+      return new Response(assetResponse.body, { status: assetResponse.status, headers });
+    }
     if (url.pathname === "/api/agent") {
       if (request.method !== "POST") return json({ error: "POST required" }, 405);
       let body;
