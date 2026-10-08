@@ -64,7 +64,8 @@ pub fn agent_run(command_id: &str, params_json: &str) -> String {
 #[wasm_bindgen]
 pub fn agent_poll() -> String {
     AGENT_RESULTS.with(|r| {
-        let Some(results) = r.borrow().as_ref() else { return "[]".to_string() };
+        let binding = r.borrow();
+        let Some(results) = binding.as_ref() else { return "[]".to_string() };
         let Ok(mut out) = results.lock() else { return "[]".to_string() };
         let values: Vec<Value> = out.drain(..).filter_map(|s| serde_json::from_str(&s).ok()).collect();
         serde_json::to_string(&values).unwrap_or_else(|_| "[]".to_string())
