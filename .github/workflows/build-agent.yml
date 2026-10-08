@@ -1,0 +1,50 @@
+name: Build and deploy PhotoCraft AI Agent
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout PhotoCraft v0.2.0
+        run: git clone --depth 1 --branch v0.2.0 https://github.com/storytold/photocraft.git upstream
+      - name: Patch PhotoCraft
+        run: python3 scripts/patch_upstream.py
+      - name: Install Rust wasm target
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add wasm32-unknown-unknown
+      - name: Install Trunk
+        run: cargo install trunk --locked
+      - name: Build PhotoCraft
+        working-directory: upstream/apps/photocraft-web
+        run: trunk build --release
+      - name: Prepare assets
+        run: |
+          rm -rf site
+          mkdir -p site
+          cp -a upstream/apps/photocraft-web/dist/. site/
+          cp _headers site/_headers || true
+          cp .htaccess site/.htaccess || true
+      - name: Deploy
+        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.147.0 deploy
+      - name: Upload artifact without Cloudflare secrets
+        if: ${{ secrets.CLOUDFLARE_API_TOKEN == '' || secrets.CLOUDFLARE_ACCOUNT_ID == '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: photocraft-ai-site
+          path: site
+          retention-days: 7
