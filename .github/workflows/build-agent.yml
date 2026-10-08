@@ -27,6 +27,8 @@ jobs:
           rustup toolchain install stable --profile minimal
           rustup default stable
           rustup target add wasm32-unknown-unknown
+          sudo apt-get update
+          sudo apt-get install -y brotli
       - name: Install Trunk
         run: cargo install trunk --locked
       - name: Build PhotoCraft
@@ -39,17 +41,7 @@ jobs:
           cp -a upstream/dist/web/. site/
           WASM_FILE=$(find site -maxdepth 1 -type f -name '*.wasm' -print -quit)
           test -n "$WASM_FILE"
-          gzip -9 -c "$WASM_FILE" > "$WASM_FILE.gz"
-          WASM_NAME=$(basename "$WASM_FILE")
-          WASM_GZ_NAME=$(basename "$WASM_FILE.gz")
-          python3 - "$WASM_NAME" "$WASM_GZ_NAME" <<'PY'
-import pathlib, sys
-wasm_name, gz_name = sys.argv[1], sys.argv[2]
-for p in pathlib.Path("site").glob("*.js"):
-    s = p.read_text()
-    if wasm_name in s:
-        p.write_text(s.replace(wasm_name, gz_name))
-PY
+          brotli -q 11 -f "$WASM_FILE" -o "$WASM_FILE.br"
           rm "$WASM_FILE"
           cp _headers site/_headers || true
           cp .htaccess site/.htaccess || true
