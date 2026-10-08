@@ -37,6 +37,10 @@ jobs:
           rm -rf site
           mkdir -p site
           cp -a upstream/dist/web/. site/
+          WASM_FILE=$(find site -maxdepth 1 -type f -name '*.wasm' -print -quit)
+          test -n "$WASM_FILE"
+          gzip -9 -c "$WASM_FILE" > "$WASM_FILE.gz"
+          rm "$WASM_FILE"
           cp _headers site/_headers || true
           cp .htaccess site/.htaccess || true
       - name: Deploy
