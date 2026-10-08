@@ -36,7 +36,7 @@ jobs:
         run: |
           rm -rf site
           mkdir -p site
-          cp -a upstream/apps/photocraft-web/dist/. site/
+          cp -a upstream/dist/web/. site/
           cp _headers site/_headers || true
           cp .htaccess site/.htaccess || true
       - name: Deploy
