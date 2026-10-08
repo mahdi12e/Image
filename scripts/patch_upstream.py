@@ -125,7 +125,7 @@ new_logic = '''    fn logic(&mut self, ctx: &egui::Context, frame: &mut eframe::
         };
         for (request_id, command_id, params_json) in pending {
             let result = match serde_json::from_str::<Value>(&params_json) {
-                Ok(params) => photocraft_ui_egui::jobs_ui::run(&mut self.app, &command_id, params),
+                Ok(params) => self.app.session.execute(&command_id, params).map_err(|e| e.to_string()),
                 Err(e) => Err(format!("invalid params JSON: {}", e)),
             };
             let reply = match result {
