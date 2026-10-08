@@ -6,6 +6,11 @@
   Content-Type: application/wasm
   Cache-Control: public, max-age=31536000, immutable
 
+/*.wasm.gz
+  Content-Type: application/wasm
+  Content-Encoding: gzip
+  Cache-Control: public, max-age=31536000, immutable
+
 /*.js
   Cache-Control: public, max-age=31536000, immutable
 
